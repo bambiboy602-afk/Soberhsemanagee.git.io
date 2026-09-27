@@ -140,9 +140,25 @@
         "date": { "type": "string", "format": "date-time", "description": "Date of incident" }
       },
       "required": ["description", "severity", "residentId", "houseId", "date"]
+    },
+    "user": {
+      "title": "User",
+      "description": "System user",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email", "description": "User email" },
+        "role": { "type": "string", "enum": ["resident", "manager"], "description": "User role" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "residentId": { "type": "string", "description": "Resident ID if resident" }
+      },
+      "required": ["email", "role", "houseId"]
     }
   },
   "firestore": {
+    "/users/{uid}": {
+      "schema": "user",
+      "description": "User roles/profiles"
+    },
     "/houses/{houseId}": {
       "schema": "house",
       "description": "House documents"
