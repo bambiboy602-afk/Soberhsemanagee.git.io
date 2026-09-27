@@ -1,11 +1,17 @@
-<div align="center">
+# SoberHouse Template
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+A clean, role-based management application for sober living homes.
 
-  <h1>Built with AI Studio</h2>
+## Features
+- **Role Management:** Manager vs. Member views.
+- **House Setup:** Template based configuration per house.
+- **Tools:** Rules, Chores, Meetings, Announcements, Incident Logs, Export.
+- **Resource Hub:** Video conferencing placeholders and peer resources.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
-
-  <a href="https://aistudio.google.com/apps">Start building</a>
-
-</div>
+## Deployment
+1. Clone this repo.
+2. Setup Firebase Project (Firestore & Auth).
+3. Update `firebase-applet-config.json` with your credentials.
+4. `npm install`
+5. `npm run build`
+6. Deploy to GitHub Pages or Vercel.

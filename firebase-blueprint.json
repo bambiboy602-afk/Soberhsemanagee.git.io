@@ -1,0 +1,195 @@
+{
+  "entities": {
+    "house": {
+      "title": "House",
+      "description": "Sober living house",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the house" },
+        "managerId": { "type": "string", "description": "UID of the manager" }
+      },
+      "required": ["name", "managerId"]
+    },
+    "resident": {
+      "title": "Resident",
+      "description": "A resident in the house",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Resident name" },
+        "moveInDate": { "type": "string", "format": "date", "description": "Date of move in" },
+        "sobrietyStatus": { "type": "string", "enum": ["sober", "relapsed", "unknown"], "description": "Current sobriety status" },
+        "houseId": { "type": "string", "description": "House ID" }
+      },
+      "required": ["name", "moveInDate", "sobrietyStatus", "houseId"]
+    },
+    "rule": {
+      "title": "Rule",
+      "description": "A house rule",
+      "type": "object",
+      "properties": {
+        "description": { "type": "string", "description": "The rule text" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When added" }
+      },
+      "required": ["description", "houseId", "createdAt"]
+    },
+    "chore": {
+      "title": "Chore",
+      "description": "A household chore",
+      "type": "object",
+      "properties": {
+        "description": { "type": "string", "description": "Chore description" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "assignedTo": { "type": "string", "description": "Resident ID" },
+        "isCompleted": { "type": "boolean", "description": "Completion status" },
+        "dueDate": { "type": "string", "format": "date", "description": "Due date" }
+      },
+      "required": ["description", "houseId", "isCompleted"]
+    },
+    "meeting": {
+      "title": "Meeting",
+      "description": "A house meeting",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Meeting name" },
+        "date": { "type": "string", "format": "date", "description": "Date of meeting" },
+        "houseId": { "type": "string", "description": "House ID" }
+      },
+      "required": ["name", "date", "houseId"]
+    },
+    "attendance": {
+      "title": "Attendance",
+      "description": "Attendance record for a resident",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "attended": { "type": "boolean", "description": "Whether attended" }
+      },
+      "required": ["residentId", "attended"]
+    },
+    "checkIn": {
+      "title": "Daily Check-in",
+      "description": "Daily check-in for a resident",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "mood": { "type": "string", "description": "Resident's mood" },
+        "sobrietyStatus": { "type": "string", "enum": ["sober", "struggling"], "description": "Sobriety status" },
+        "comments": { "type": "string", "description": "Additional comments" },
+        "date": { "type": "string", "format": "date", "description": "Check-in date" }
+      },
+      "required": ["residentId", "mood", "sobrietyStatus", "date"]
+    },
+    "scheduleEntry": {
+      "title": "Schedule Entry",
+      "description": "Weekly schedule entry",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "type": { "type": "string", "description": "Work, treatment, etc." },
+        "dayOfWeek": { "type": "integer", "description": "0-6" },
+        "startTime": { "type": "string", "description": "HH:MM" },
+        "endTime": { "type": "string", "description": "HH:MM" }
+      },
+      "required": ["residentId", "type", "dayOfWeek", "startTime", "endTime"]
+    },
+    "passRequest": {
+      "title": "Pass Request",
+      "description": "Request for a pass",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "reason": { "type": "string", "description": "Court, grocery, etc." },
+        "startTime": { "type": "string", "description": "ISO timestamp" },
+        "endTime": { "type": "string", "description": "ISO timestamp" },
+        "status": { "type": "string", "enum": ["pending", "approved", "denied"], "description": "Request status" }
+      },
+      "required": ["residentId", "reason", "startTime", "endTime", "status"]
+    },
+    "movementRecord": {
+      "title": "Movement Record",
+      "description": "Sign in/out record",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "type": { "type": "string", "enum": ["sign-in", "sign-out"], "description": "Sign-in or out" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "When it happened" }
+      },
+      "required": ["residentId", "type", "timestamp"]
+    },
+    "announcement": {
+      "title": "Announcement",
+      "description": "House announcement",
+      "type": "object",
+      "properties": {
+        "content": { "type": "string", "description": "Announcement content" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "date": { "type": "string", "format": "date-time", "description": "Date of announcement" }
+      },
+      "required": ["content", "houseId", "date"]
+    },
+    "incident": {
+      "title": "Incident",
+      "description": "Incident report",
+      "type": "object",
+      "properties": {
+        "description": { "type": "string", "description": "Incident details" },
+        "severity": { "type": "string", "enum": ["low", "medium", "high"], "description": "Severity level" },
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "date": { "type": "string", "format": "date-time", "description": "Date of incident" }
+      },
+      "required": ["description", "severity", "residentId", "houseId", "date"]
+    }
+  },
+  "firestore": {
+    "/houses/{houseId}": {
+      "schema": "house",
+      "description": "House documents"
+    },
+    "/houses/{houseId}/residents/{residentId}": {
+      "schema": "resident",
+      "description": "Residents per house"
+    },
+    "/houses/{houseId}/rules/{ruleId}": {
+      "schema": "rule",
+      "description": "Rules per house"
+    },
+    "/houses/{houseId}/chores/{choreId}": {
+      "schema": "chore",
+      "description": "Chores per house"
+    },
+    "/houses/{houseId}/meetings/{meetingId}": {
+      "schema": "meeting",
+      "description": "Meetings per house"
+    },
+    "/houses/{houseId}/meetings/{meetingId}/attendance/{residentId}": {
+      "schema": "attendance",
+      "description": "Attendance records per meeting"
+    },
+    "/houses/{houseId}/checkins/{checkInId}": {
+      "schema": "checkIn",
+      "description": "Daily check-ins per house"
+    },
+    "/houses/{houseId}/schedule/{entryId}": {
+      "schema": "scheduleEntry",
+      "description": "Weekly schedules"
+    },
+    "/houses/{houseId}/passRequests/{requestId}": {
+      "schema": "passRequest",
+      "description": "Pass requests"
+    },
+    "/houses/{houseId}/movements/{movementId}": {
+      "schema": "movementRecord",
+      "description": "Movement records"
+    },
+    "/houses/{houseId}/announcements/{announcementId}": {
+      "schema": "announcement",
+      "description": "Announcements per house"
+    },
+    "/houses/{houseId}/incidents/{incidentId}": {
+      "schema": "incident",
+      "description": "Incidents per house"
+    }
+  }
+}
