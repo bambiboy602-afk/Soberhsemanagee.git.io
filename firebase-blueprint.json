@@ -99,12 +99,16 @@
       "type": "object",
       "properties": {
         "residentId": { "type": "string", "description": "Resident ID" },
-        "reason": { "type": "string", "description": "Court, grocery, etc." },
+        "houseId": { "type": "string", "description": "House ID" },
+        "type": { "type": "string", "enum": ["local", "overnight", "travel"], "description": "Type of pass" },
+        "reason": { "type": "string", "description": "Reason for the pass" },
         "startTime": { "type": "string", "description": "ISO timestamp" },
         "endTime": { "type": "string", "description": "ISO timestamp" },
-        "status": { "type": "string", "enum": ["pending", "approved", "denied"], "description": "Request status" }
+        "status": { "type": "string", "enum": ["pending", "approved", "denied"], "description": "Request status" },
+        "managerNote": { "type": "string", "description": "Optional note from manager" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When requested" }
       },
-      "required": ["residentId", "reason", "startTime", "endTime", "status"]
+      "required": ["residentId", "houseId", "type", "reason", "startTime", "endTime", "status", "createdAt"]
     },
     "movementRecord": {
       "title": "Movement Record",
@@ -140,6 +144,101 @@
         "date": { "type": "string", "format": "date-time", "description": "Date of incident" }
       },
       "required": ["description", "severity", "residentId", "houseId", "date"]
+    },
+    "goal": {
+      "title": "Goal",
+      "description": "A recovery goal for a resident",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Goal title" },
+        "description": { "type": "string", "description": "Detailed goal description" },
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "status": { "type": "string", "enum": ["active", "completed", "abandoned"], "description": "Status of the goal" },
+        "progress": { "type": "integer", "description": "Percentage progress (0-100)" },
+        "targetDate": { "type": "string", "format": "date", "description": "Target date for completion" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When created" },
+        "lastUpdated": { "type": "string", "format": "date-time", "description": "Last progress update" }
+      },
+      "required": ["title", "residentId", "houseId", "status", "progress", "createdAt"]
+    },
+    "moodLog": {
+      "title": "Mood Log",
+      "description": "Daily emotional state log",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "score": { "type": "integer", "description": "Mood score (1-5)" },
+        "note": { "type": "string", "description": "Optional note" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Log timestamp" }
+      },
+      "required": ["residentId", "houseId", "score", "timestamp"]
+    },
+    "safetyPlan": {
+      "title": "Crisis Safety Plan",
+      "description": "Resident emergency plan",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "emergencyContacts": { "type": "array", "description": "List of contacts" },
+        "triggers": { "type": "array", "description": "List of triggers" },
+        "copingStrategies": { "type": "array", "description": "List of strategies" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update" }
+      },
+      "required": ["residentId", "houseId", "updatedAt"]
+    },
+    "supportRequest": {
+      "title": "Support Request",
+      "description": "Request for manager support",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "message": { "type": "string", "description": "Optional message" },
+        "status": { "type": "string", "enum": ["pending", "resolved"], "description": "Request status" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp" }
+      },
+      "required": ["residentId", "houseId", "status", "createdAt"]
+    },
+    "complianceForm": {
+      "title": "Compliance Form",
+      "description": "Signed compliance document",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "type": { "type": "string", "enum": ["program-terms", "house-rules", "treatment-plan"], "description": "Form type" },
+        "formData": { "type": "object", "description": "Form fields" },
+        "signedAt": { "type": "string", "format": "date-time", "description": "Signature timestamp" },
+        "signedByName": { "type": "string", "description": "Full name of signer" }
+      },
+      "required": ["residentId", "houseId", "type", "formData", "signedAt", "signedByName"]
+    },
+    "affirmation": {
+      "title": "Daily Affirmation",
+      "description": "Inspirational quote",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "Affirmation text" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["text", "houseId", "createdAt"]
+    },
+    "specialNote": {
+      "title": "Special Note",
+      "description": "Special instruction or note for a resident",
+      "type": "object",
+      "properties": {
+        "residentId": { "type": "string", "description": "Resident ID" },
+        "houseId": { "type": "string", "description": "House ID" },
+        "content": { "type": "string", "description": "Note content" },
+        "createdBy": { "type": "string", "description": "Manager UID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" }
+      },
+      "required": ["residentId", "houseId", "content", "createdBy", "createdAt"]
     },
     "user": {
       "title": "User",
@@ -206,6 +305,34 @@
     "/houses/{houseId}/incidents/{incidentId}": {
       "schema": "incident",
       "description": "Incidents per house"
+    },
+    "/houses/{houseId}/goals/{goalId}": {
+      "schema": "goal",
+      "description": "Resident goals"
+    },
+    "/houses/{houseId}/moodLogs/{logId}": {
+      "schema": "moodLog",
+      "description": "Resident mood logs"
+    },
+    "/houses/{houseId}/safetyPlans/{residentId}": {
+      "schema": "safetyPlan",
+      "description": "Resident safety plans"
+    },
+    "/houses/{houseId}/supportRequests/{requestId}": {
+      "schema": "supportRequest",
+      "description": "Support requests"
+    },
+    "/houses/{houseId}/complianceForms/{formId}": {
+      "schema": "complianceForm",
+      "description": "Resident compliance documents"
+    },
+    "/houses/{houseId}/affirmations/{affirmationId}": {
+      "schema": "affirmation",
+      "description": "House-specific affirmations"
+    },
+    "/houses/{houseId}/specialNotes/{noteId}": {
+      "schema": "specialNote",
+      "description": "Special resident notes"
     }
   }
 }

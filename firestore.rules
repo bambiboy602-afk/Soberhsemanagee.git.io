@@ -1,0 +1,146 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- GLOBAL HELPERS ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isManagerOfHouse(houseId) {
+      return isSignedIn() && getUserData().role == 'manager' && getUserData().houseId == houseId;
+    }
+    
+    function isResidentOfHouse(houseId) {
+      return isSignedIn() && getUserData().role == 'resident' && getUserData().houseId == houseId;
+    }
+
+    // --- VALIDATION HELPERS ---
+    
+    function isValidGoal(data) {
+      return data.keys().hasAll(['title', 'residentId', 'houseId', 'status', 'progress', 'createdAt']) &&
+             data.keys().hasOnly(['title', 'description', 'residentId', 'houseId', 'status', 'progress', 'targetDate', 'createdAt', 'lastUpdated']) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.residentId == request.auth.uid &&
+             data.status in ['active', 'completed', 'abandoned'] &&
+             data.progress is int && data.progress >= 0 && data.progress <= 100 &&
+             (data.description == null || (data.description is string && data.description.size() <= 1000));
+    }
+
+    function isValidMoodLog(data) {
+      return data.keys().hasAll(['residentId', 'houseId', 'score', 'timestamp']) &&
+             data.keys().hasOnly(['residentId', 'houseId', 'score', 'note', 'timestamp']) &&
+             data.residentId == request.auth.uid &&
+             data.score is int && data.score >= 1 && data.score <= 5 &&
+             (data.note == null || (data.note is string && data.note.size() <= 500));
+    }
+
+    function isValidSafetyPlan(data) {
+      return data.keys().hasAll(['residentId', 'houseId', 'updatedAt']) &&
+             data.keys().hasOnly(['residentId', 'houseId', 'emergencyContacts', 'triggers', 'copingStrategies', 'updatedAt']) &&
+             data.residentId == request.auth.uid &&
+             (data.emergencyContacts == null || data.emergencyContacts is list) &&
+             (data.triggers == null || data.triggers is list) &&
+             (data.copingStrategies == null || data.copingStrategies is list);
+    }
+
+    function isValidSupportRequest(data) {
+      return data.keys().hasAll(['residentId', 'houseId', 'status', 'createdAt']) &&
+             data.keys().hasOnly(['residentId', 'houseId', 'message', 'status', 'createdAt']) &&
+             data.residentId == request.auth.uid &&
+             data.status in ['pending', 'resolved'] &&
+             (data.message == null || (data.message is string && data.message.size() <= 1000));
+    }
+
+    function isValidComplianceForm(data) {
+      return data.keys().hasAll(['residentId', 'houseId', 'type', 'formData', 'signedAt', 'signedByName']) &&
+             data.keys().hasOnly(['residentId', 'houseId', 'type', 'formData', 'signedAt', 'signedByName']) &&
+             data.residentId == request.auth.uid &&
+             data.type in ['program-terms', 'house-rules', 'treatment-plan'] &&
+             data.formData is map &&
+             data.signedByName is string && data.signedByName.size() <= 200;
+    }
+
+    // --- RULES ---
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || (isSignedIn() && getUserData().role == 'manager' && getUserData().houseId == existing().houseId);
+      allow create: if isOwner(userId) && incoming().role in ['resident', 'manager'];
+      allow update: if isOwner(userId) && !incoming().diff(existing()).affectedKeys().hasAny(['role', 'houseId']);
+    }
+
+    match /houses/{houseId} {
+      allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+      allow write: if isManagerOfHouse(houseId);
+      
+      match /goals/{goalId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow create: if isResidentOfHouse(houseId) && isValidGoal(incoming()) && incoming().houseId == houseId;
+        allow update: if isResidentOfHouse(houseId) && isOwner(existing().residentId) && isValidGoal(incoming()) && 
+                        incoming().residentId == existing().residentId &&
+                        incoming().createdAt == existing().createdAt;
+        allow delete: if isResidentOfHouse(houseId) && isOwner(existing().residentId);
+      }
+      
+      match /moodLogs/{logId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow create: if isResidentOfHouse(houseId) && isValidMoodLog(incoming()) && incoming().houseId == houseId;
+        allow delete: if isResidentOfHouse(houseId) && isOwner(existing().residentId);
+      }
+      
+      match /safetyPlans/{residentId} {
+        allow read: if isOwner(residentId) || isManagerOfHouse(houseId);
+        allow create, update: if isOwner(residentId) && isValidSafetyPlan(incoming()) && incoming().houseId == houseId;
+      }
+      
+      match /supportRequests/{requestId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow create: if isResidentOfHouse(houseId) && isValidSupportRequest(incoming()) && incoming().houseId == houseId;
+        allow update: if isManagerOfHouse(houseId) && incoming().diff(existing()).affectedKeys().hasOnly(['status']);
+        allow delete: if isManagerOfHouse(houseId);
+      }
+
+      match /complianceForms/{formId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow create: if isResidentOfHouse(houseId) && isValidComplianceForm(incoming()) && incoming().houseId == houseId;
+      }
+
+      match /affirmations/{affirmationId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow create, update, delete: if isManagerOfHouse(houseId);
+      }
+      
+      // Other collections (Simplified for now but following the same pattern)
+      match /residents/{residentId} { allow read, write: if isManagerOfHouse(houseId); }
+      match /chores/{choreId} { allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); allow write: if isManagerOfHouse(houseId) || (isResidentOfHouse(houseId) && incoming().diff(existing()).affectedKeys().hasOnly(['isCompleted'])); }
+      match /rules/{ruleId} { allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); allow write: if isManagerOfHouse(houseId); }
+      match /meetings/{meetingId} { allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); allow write: if isManagerOfHouse(houseId); }
+      match /checkins/{checkInId} { allow read, create: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); }
+      match /announcements/{announcementId} { allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); allow write: if isManagerOfHouse(houseId); }
+      match /incidents/{incidentId} { allow read, write: if isManagerOfHouse(houseId); }
+      match /specialNotes/{noteId} { allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); allow write: if isManagerOfHouse(houseId); }
+      match /schedule/{entryId} { allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); allow write: if isManagerOfHouse(houseId); }
+      match /passRequests/{requestId} { 
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); 
+        allow create: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow update, delete: if isManagerOfHouse(houseId);
+      }
+      match /movements/{movementId} { 
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId); 
+        allow create: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow update, delete: if isManagerOfHouse(houseId);
+      }
+    }
+  }
+}
