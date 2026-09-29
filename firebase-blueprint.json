@@ -240,6 +240,59 @@
       },
       "required": ["residentId", "houseId", "content", "createdBy", "createdAt"]
     },
+    "resource": {
+      "title": "Resource",
+      "description": "Shared link or information for residents",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string", "enum": ["job", "medical", "legal", "recovery", "other"] },
+        "url": { "type": "string" },
+        "houseId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "category", "houseId", "createdAt"]
+    },
+    "professionalContact": {
+      "title": "Professional Contact",
+      "description": "Professional lead or contact (PO, Doctor, Employer)",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "role": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "notes": { "type": "string" },
+        "residentId": { "type": "string" },
+        "houseId": { "type": "string" },
+        "isPublic": { "type": "boolean", "description": "Shared house-wide lead" }
+      },
+      "required": ["name", "role", "houseId"]
+    },
+    "room": {
+      "title": "Room",
+      "description": "A room in the house",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "houseId": { "type": "string" },
+        "capacity": { "type": "integer" }
+      },
+      "required": ["name", "houseId"]
+    },
+    "bed": {
+      "title": "Bed",
+      "description": "A specific bed in a room",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "roomId": { "type": "string" },
+        "houseId": { "type": "string" },
+        "residentId": { "type": "string", "description": "Occupying resident UID (optional)" }
+      },
+      "required": ["name", "roomId", "houseId"]
+    },
     "user": {
       "title": "User",
       "description": "System user",
@@ -333,6 +386,22 @@
     "/houses/{houseId}/specialNotes/{noteId}": {
       "schema": "specialNote",
       "description": "Special resident notes"
+    },
+    "/houses/{houseId}/resources/{resourceId}": {
+      "schema": "resource",
+      "description": "House resources"
+    },
+    "/houses/{houseId}/professionalContacts/{contactId}": {
+      "schema": "professionalContact",
+      "description": "Professional leads and contacts"
+    },
+    "/houses/{houseId}/rooms/{roomId}": {
+      "schema": "room",
+      "description": "Rooms in the house"
+    },
+    "/houses/{houseId}/beds/{bedId}": {
+      "schema": "bed",
+      "description": "Beds in the house"
     }
   }
 }

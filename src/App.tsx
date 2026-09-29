@@ -23,6 +23,9 @@ import { ComplianceForms } from './components/ComplianceForms';
 import { DailyAffirmation } from './components/DailyAffirmation';
 import { PolicyDocs } from './components/PolicyDocs';
 import { Passes } from './components/Passes';
+import { HouseResources } from './components/HouseResources';
+import { ProfessionalContacts } from './components/ProfessionalContacts';
+import { HouseMap } from './components/HouseMap';
 
 function AppContent() {
   const { user, userData, signIn, signOut } = useAuth();
@@ -104,6 +107,9 @@ function AppContent() {
         <Goals houseId={config.id} residentId={effectiveResidentId} isManager={isManager} />
         <PolicyDocs />
         <Passes houseId={config.id} residentId={effectiveResidentId} isManager={isManager} />
+        <HouseResources houseId={config.id} isManager={isManager} />
+        <ProfessionalContacts houseId={config.id} residentId={effectiveResidentId} isManager={isManager} />
+        <HouseMap houseId={config.id} isManager={isManager} />
         <ResidentActivity houseId={config.id} residentId={effectiveResidentId} isManager={isManager} />
         <Announcements houseId={config.id} />
         <VideoLinks />

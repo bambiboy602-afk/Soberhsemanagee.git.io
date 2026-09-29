@@ -141,6 +141,23 @@ service cloud.firestore {
         allow create: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
         allow update, delete: if isManagerOfHouse(houseId);
       }
+      match /resources/{resourceId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow write: if isManagerOfHouse(houseId);
+      }
+      match /professionalContacts/{contactId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow create: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow update, delete: if isManagerOfHouse(houseId) || (isResidentOfHouse(houseId) && existing().residentId == request.auth.uid);
+      }
+      match /rooms/{roomId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow write: if isManagerOfHouse(houseId);
+      }
+      match /beds/{bedId} {
+        allow read: if isResidentOfHouse(houseId) || isManagerOfHouse(houseId);
+        allow write: if isManagerOfHouse(houseId);
+      }
     }
   }
 }
